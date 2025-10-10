@@ -319,9 +319,8 @@ function redactIntermediateWildcard (obj, parts, censor, wildcardIndex, original
         if (remove) {
           removeKey(current, afterWildcard)
         } else {
-          const fullPath = [...pathArray.slice(0, pathLength), ...afterWildcard]
           const actualCensor = typeof censor === 'function'
-            ? censor(getValue(current, afterWildcard), fullPath)
+            ? censor(getValue(current, afterWildcard), [...pathArray.slice(0, pathLength), ...afterWildcard])
             : censor
           setValue(current, afterWildcard, actualCensor)
         }
