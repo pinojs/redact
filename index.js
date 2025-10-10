@@ -301,14 +301,28 @@ function redactIntermediateWildcard (obj, parts, censor, wildcardIndex, original
         traverse(current[nextKey], pathLength + 1)
       }
     } else {
-      if (remove) {
-        removeKey(current, afterWildcard)
-      } else {
-        const fullPath = [...pathArray.slice(0, pathLength), ...afterWildcard]
-        const actualCensor = typeof censor === 'function'
-          ? censor(getValue(current, afterWildcard), fullPath)
+      // Check if afterWildcard contains more wildcards
+      if (afterWildcard.includes('*')) {
+        // Recursively handle remaining wildcards
+        // Wrap censor to prepend current path context
+        const wrappedCensor = typeof censor === 'function'
+          ? (value, path) => {
+              const fullPath = [...pathArray.slice(0, pathLength), ...path]
+              return censor(value, fullPath)
+            }
           : censor
-        setValue(current, afterWildcard, actualCensor)
+        redactWildcardPath(current, afterWildcard, wrappedCensor, originalPath, remove)
+      } else {
+        // No more wildcards, apply the redaction directly
+        if (remove) {
+          removeKey(current, afterWildcard)
+        } else {
+          const fullPath = [...pathArray.slice(0, pathLength), ...afterWildcard]
+          const actualCensor = typeof censor === 'function'
+            ? censor(getValue(current, afterWildcard), fullPath)
+            : censor
+          setValue(current, afterWildcard, actualCensor)
+        }
       }
     }
   }
