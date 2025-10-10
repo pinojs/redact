@@ -1,3 +1,5 @@
+'use strict'
+
 // Node.js test comparing slow-redact vs fast-redact for multiple wildcard patterns
 // This test validates that slow-redact correctly handles 3+ consecutive wildcards
 // matching the behavior of fast-redact

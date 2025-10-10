@@ -1,3 +1,5 @@
+'use strict'
+
 const { test } = require('node:test')
 const { strict: assert } = require('node:assert')
 const slowRedact = require('../index.js')
