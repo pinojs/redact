@@ -167,11 +167,11 @@ test('integration: null and undefined handling - legitimate difference', () => {
   const fastResult = fastRedact(options)(obj)
 
   // This is a legitimate behavioral difference:
-  // slow-redact redacts null values, fast-redact doesn't
+  // @pinojs/redact redacts null values, fast-redact doesn't
   const slowParsed = JSON.parse(slowResult)
   const fastParsed = JSON.parse(fastResult)
 
-  // slow-redact redacts nulls
+  // @pinojs/redact redacts nulls
   assert.strictEqual(slowParsed.nullValue, '[REDACTED]')
   assert.strictEqual(slowParsed.nested.nullValue, '[REDACTED]')
 
@@ -186,7 +186,7 @@ test('integration: strict mode with primitives - different error handling', () =
   const slowRedactFn = slowRedact(options)
   const fastRedactFn = fastRedact(options)
 
-  // slow-redact handles primitives gracefully
+  // @pinojs/redact handles primitives gracefully
   const stringSlowResult = slowRedactFn('primitive')
   assert.strictEqual(stringSlowResult, '"primitive"')
 
@@ -215,15 +215,15 @@ test('integration: serialize false behavior difference', () => {
   assert.strictEqual(slowResult.secret, '[REDACTED]')
   assert.strictEqual(fastResult.secret, '[REDACTED]')
 
-  // slow-redact always has restore method
+  // @pinojs/redact always has restore method
   assert.strictEqual(typeof slowResult.restore, 'function')
 
-  // slow-redact should restore to original value
+  // @pinojs/redact should restore to original value
   assert.strictEqual(slowResult.restore().secret, 'hidden')
 
   // Key difference: original object state
-  // fast-redact mutates the original, slow-redact doesn't
-  assert.strictEqual(slowObj.secret, 'hidden') // slow-redact preserves original
+  // fast-redact mutates the original, @pinojs/redact doesn't
+  assert.strictEqual(slowObj.secret, 'hidden') // @pinojs/redact preserves original
   assert.strictEqual(fastObj.secret, '[REDACTED]') // fast-redact mutates original
 })
 
@@ -366,9 +366,9 @@ test('integration: remove option with custom censor comparison with fast-redact'
   assert.strictEqual(parsed.public, 'data')
 })
 
-test('integration: remove option serialize false behavior - slow-redact only', () => {
+test('integration: remove option serialize false behavior - @pinojs/redact only', () => {
   // fast-redact doesn't support remove option with serialize: false
-  // so we test slow-redact's behavior only
+  // so we test @pinojs/redact's behavior only
   const obj = { secret: 'hidden', public: 'data' }
   const options = { paths: ['secret'], remove: true, serialize: false }
 

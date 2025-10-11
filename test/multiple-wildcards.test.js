@@ -4,7 +4,7 @@ const { test } = require('node:test')
 const { strict: assert } = require('node:assert')
 const slowRedact = require('../index.js')
 
-// Tests for Issue #2319: slow-redact fails to redact patterns with 3+ consecutive wildcards
+// Tests for Issue #2319: @pinojs/redact fails to redact patterns with 3+ consecutive wildcards
 test('three consecutive wildcards: *.*.*.password (4 levels deep)', () => {
   const obj = {
     simple: { password: 'secret-2-levels' },

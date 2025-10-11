@@ -1,7 +1,7 @@
 'use strict'
 
-// Node.js test comparing slow-redact vs fast-redact for multiple wildcard patterns
-// This test validates that slow-redact correctly handles 3+ consecutive wildcards
+// Node.js test comparing @pinojs/redact vs fast-redact for multiple wildcard patterns
+// This test validates that @pinojs/redact correctly handles 3+ consecutive wildcards
 // matching the behavior of fast-redact
 
 const { test } = require('node:test')
@@ -12,7 +12,7 @@ const slowRedact = require('../index.js')
 // Helper function to test redaction and track which values were censored
 function testRedactDirect (library, pattern, testData = {}) {
   const matches = []
-  const redactor = library === 'slow-redact' ? slowRedact : fastRedact
+  const redactor = library === '@pinojs/redact' ? slowRedact : fastRedact
 
   try {
     const redact = redactor({
@@ -55,14 +55,14 @@ function testRedactDirect (library, pattern, testData = {}) {
 }
 
 function testSlowRedactDirect (pattern, testData) {
-  return testRedactDirect('slow-redact', pattern, testData)
+  return testRedactDirect('@pinojs/redact', pattern, testData)
 }
 
 function testFastRedactDirect (pattern, testData) {
   return testRedactDirect('fast-redact', pattern, testData)
 }
 
-test('slow-redact: *.password (2 levels)', () => {
+test('@pinojs/redact: *.password (2 levels)', () => {
   const result = testSlowRedactDirect('*.password', {
     simple: { password: 'secret-2-levels' }
   })
@@ -72,7 +72,7 @@ test('slow-redact: *.password (2 levels)', () => {
   assert.strictEqual(result.matches[0].value, 'secret-2-levels')
 })
 
-test('slow-redact: *.*.password (3 levels)', () => {
+test('@pinojs/redact: *.*.password (3 levels)', () => {
   const result = testSlowRedactDirect('*.*.password', {
     simple: { password: 'secret-2-levels' },
     user: { auth: { password: 'secret-3-levels' } }
@@ -83,7 +83,7 @@ test('slow-redact: *.*.password (3 levels)', () => {
   assert.strictEqual(result.matches[0].value, 'secret-3-levels')
 })
 
-test('slow-redact: *.*.*.password (4 levels)', () => {
+test('@pinojs/redact: *.*.*.password (4 levels)', () => {
   const result = testSlowRedactDirect('*.*.*.password', {
     simple: { password: 'secret-2-levels' },
     user: { auth: { password: 'secret-3-levels' } },
@@ -95,7 +95,7 @@ test('slow-redact: *.*.*.password (4 levels)', () => {
   assert.strictEqual(result.matches[0].value, 'secret-4-levels')
 })
 
-test('slow-redact: *.*.*.*.password (5 levels)', () => {
+test('@pinojs/redact: *.*.*.*.password (5 levels)', () => {
   const result = testSlowRedactDirect('*.*.*.*.password', {
     simple: { password: 'secret-2-levels' },
     user: { auth: { password: 'secret-3-levels' } },
@@ -110,7 +110,7 @@ test('slow-redact: *.*.*.*.password (5 levels)', () => {
   assert.strictEqual(result.matches[0].value, 'secret-5-levels')
 })
 
-test('slow-redact: *.*.*.*.*.password (6 levels)', () => {
+test('@pinojs/redact: *.*.*.*.*.password (6 levels)', () => {
   const result = testSlowRedactDirect('*.*.*.*.*.password', {
     simple: { password: 'secret-2-levels' },
     user: { auth: { password: 'secret-3-levels' } },

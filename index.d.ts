@@ -1,7 +1,7 @@
 export = F;
 
 /**
- * When called without any options, or with a zero length paths array, slow-redact will return JSON.stringify or the serialize option, if set.
+ * When called without any options, or with a zero length paths array, @pinojs/redact will return JSON.stringify or the serialize option, if set.
  * @param redactOptions
  * @param redactOptions.paths An array of strings describing the nested location of a key in an object.
  * @param redactOptions.censor This is the value which overwrites redacted properties.

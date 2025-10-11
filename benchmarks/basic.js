@@ -63,7 +63,7 @@ const deepFastRedact = fastRedact({
   paths: ['metadata.secret', 'metadata.database.password']
 })
 
-group('Small Object Redaction - slow-redact', () => {
+group('Small Object Redaction - @pinojs/redact', () => {
   bench('basic paths', () => {
     basicSlowRedact(smallObj)
   })
@@ -107,7 +107,7 @@ group('Small Object Redaction - fast-redact', () => {
   })
 })
 
-group('Large Object Redaction - slow-redact', () => {
+group('Large Object Redaction - @pinojs/redact', () => {
   bench('wildcard patterns', () => {
     wildcardSlowRedact(largeObj)
   })
@@ -142,7 +142,7 @@ group('Large Object Redaction - fast-redact', () => {
 })
 
 group('Direct Performance Comparison', () => {
-  bench('slow-redact - basic paths', () => {
+  bench('@pinojs/redact - basic paths', () => {
     basicSlowRedact(smallObj)
   })
 
@@ -150,7 +150,7 @@ group('Direct Performance Comparison', () => {
     basicFastRedact(smallObj)
   })
 
-  bench('slow-redact - wildcards', () => {
+  bench('@pinojs/redact - wildcards', () => {
     wildcardSlowRedact(largeObj)
   })
 
@@ -160,7 +160,7 @@ group('Direct Performance Comparison', () => {
 })
 
 group('Object Cloning Overhead', () => {
-  bench('slow-redact - no redaction (clone only)', () => {
+  bench('@pinojs/redact - no redaction (clone only)', () => {
     const redact = slowRedact({ paths: [] })
     redact(smallObj)
   })
@@ -170,7 +170,7 @@ group('Object Cloning Overhead', () => {
     redact(smallObj)
   })
 
-  bench('slow-redact - large object clone', () => {
+  bench('@pinojs/redact - large object clone', () => {
     const redact = slowRedact({ paths: [] })
     redact(largeObj)
   })

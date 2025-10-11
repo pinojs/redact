@@ -1,4 +1,4 @@
-# slow-redact
+# @pinojs/redact
 
 > Smart object redaction for JavaScript applications - safe AND fast!
 
@@ -7,13 +7,13 @@ Redact JS objects with the same API as [fast-redact](https://github.com/davidmar
 ## Install
 
 ```bash
-npm install slow-redact
+npm install @pinojs/redact
 ```
 
 ## Usage
 
 ```js
-const slowRedact = require('slow-redact')
+const slowRedact = require('@pinojs/redact')
 
 const redact = slowRedact({
   paths: ['headers.cookie', 'headers.authorization', 'user.password']
@@ -153,7 +153,7 @@ const redact4 = slowRedact({ paths: ['secrets.*'], remove: true })
 - **Memory efficiency**: Dramatically reduced memory usage for large objects with minimal redaction
 - **Setup-time optimization**: Path analysis happens once during setup, not per redaction
 
-### When to Use slow-redact
+### When to Use @pinojs/redact
 - When immutability is critical
 - When you need to preserve original objects
 - When objects are shared across multiple contexts
@@ -170,11 +170,11 @@ const redact4 = slowRedact({ paths: ['secrets.*'], remove: true })
 
 ## Performance Benchmarks
 
-slow-redact uses **selective cloning** that provides good performance while maintaining immutability guarantees:
+@pinojs/redact uses **selective cloning** that provides good performance while maintaining immutability guarantees:
 
 ### Performance Results
 
-| Operation Type | slow-redact | fast-redact | Performance Ratio |
+| Operation Type | @pinojs/redact | fast-redact | Performance Ratio |
 |---------------|-------------|-------------|-------------------|
 | **Small objects** | ~690ns | ~200ns | ~3.5x slower |
 | **Large objects (minimal redaction)** | **~18μs** | ~17μs | **~same performance** |
@@ -183,7 +183,7 @@ slow-redact uses **selective cloning** that provides good performance while main
 
 ### Performance Improvements
 
-slow-redact is performance-competitive with fast-redact for large objects.
+@pinojs/redact is performance-competitive with fast-redact for large objects.
 
 1. **Selective cloning approach**: Only clones object paths that need redaction
 2. **Reference sharing**: Non-redacted properties share original object references
@@ -193,22 +193,22 @@ slow-redact is performance-competitive with fast-redact for large objects.
 ### Benchmark Details
 
 **Small Objects (~180 bytes)**:
-- slow-redact: **690ns** per operation
+- @pinojs/redact: **690ns** per operation
 - fast-redact: **200ns** per operation
 - **Slight setup overhead for small objects**
 
 **Large Objects (~18KB, minimal redaction)**:
-- slow-redact: **18μs** per operation
+- @pinojs/redact: **18μs** per operation
 - fast-redact: **17μs** per operation
 - Near-identical performance
 
 **Large Objects (~18KB, wildcard patterns)**:
-- slow-redact: **48μs** per operation
+- @pinojs/redact: **48μs** per operation
 - fast-redact: **37μs** per operation
 - Competitive performance for complex patterns
 
 **Memory Considerations**:
-- slow-redact: **Selective reference sharing** (much lower memory usage than before)
+- @pinojs/redact: **Selective reference sharing** (much lower memory usage than before)
 - fast-redact: Mutates in-place (lowest memory usage)
 - Large objects with few redacted paths now share most references
 
@@ -220,7 +220,7 @@ Choose **fast-redact** when:
 - Mutation is acceptable and controlled
 - Every microsecond counts
 
-Choose **slow-redact** when:
+Choose **@pinojs/redact** when:
 - Immutability is required (with competitive performance)
 - Objects are shared across contexts
 - Large objects with selective redaction
@@ -235,7 +235,7 @@ npm run bench
 
 ## How Selective Cloning Works
 
-slow-redact uses an innovative **selective cloning** approach that provides immutability guarantees while dramatically improving performance:
+@pinojs/redact uses an innovative **selective cloning** approach that provides immutability guarantees while dramatically improving performance:
 
 ### Traditional Approach (before optimization)
 ```js
