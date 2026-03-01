@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/pinojs/redact#readme",
   "devDependencies": {
-    "eslint": "^9.36.0",
+    "eslint": "^10.0.2",
     "fast-redact": "^3.5.0",
     "mitata": "^1.0.34",
     "neostandard": "^0.12.2",
