@@ -824,3 +824,83 @@ test('censor function not called for non-existent nested paths', () => {
   assert.strictEqual(censorCallCount, 1)
   assert.strictEqual(result3.headers.authorization, '[REDACTED]')
 })
+
+// Test for Issue #28: Redaction fails if pattern hits URL object
+test('URL object in redacted path does not crash', () => {
+  const redact = slowRedact({
+    paths: ['*.password']
+  })
+
+  const obj = {
+    url: new URL('https://username:password@example.com')
+  }
+
+  // Should not throw TypeError: Receiver must be an instance of class URL
+  const result = redact(obj)
+  assert.strictEqual(typeof result, 'string')
+})
+
+test('URL object preserved when not in redaction path', () => {
+  const redact = slowRedact({
+    paths: ['secret']
+  })
+
+  const obj = {
+    url: new URL('https://example.com'),
+    secret: 'hidden'
+  }
+
+  const result = redact(obj)
+  assert.strictEqual(typeof result, 'string')
+  const parsed = JSON.parse(result)
+  assert.strictEqual(parsed.secret, '[REDACTED]')
+  assert.ok(parsed.url.includes('example.com'))
+})
+
+test('URL object cloned correctly via deepClone', () => {
+  const redact = slowRedact({
+    paths: ['secret'],
+    serialize: false
+  })
+
+  const original = new URL('https://user:pass@example.com/path')
+  const obj = { url: original, secret: 'hidden' }
+
+  const result = redact(obj)
+  assert.strictEqual(result.secret, '[REDACTED]')
+  // Cloned URL should be a proper URL instance
+  assert.ok(typeof result.url === 'object')
+})
+
+// Test for Issue #24: redact() fails due to property with only a getter
+test('getter-only property on own object does not crash', () => {
+  const obj = {}
+  Object.defineProperty(obj, 'data', {
+    get () { return 'getter-value' },
+    enumerable: true,
+    configurable: false
+  })
+  obj.secret = 'hidden'
+
+  const redact = slowRedact({
+    paths: ['data'],
+    serialize: false
+  })
+
+  // Should not throw TypeError: Cannot set property data which has only a getter
+  const result = redact(obj)
+  assert.strictEqual(result.secret, 'hidden')
+})
+
+test('writable property still gets redacted normally', () => {
+  const obj = { data: 'sensitive', public: 'info' }
+
+  const redact = slowRedact({
+    paths: ['data'],
+    serialize: false
+  })
+
+  const result = redact(obj)
+  assert.strictEqual(result.data, '[REDACTED]')
+  assert.strictEqual(result.public, 'info')
+})

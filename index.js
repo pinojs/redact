@@ -9,6 +9,10 @@ function deepClone (obj) {
     return new Date(obj.getTime())
   }
 
+  if (obj instanceof URL) {
+    return new URL(obj.href)
+  }
+
   if (obj instanceof Array) {
     const cloned = []
     for (let i = 0; i < obj.length; i++) {
@@ -110,6 +114,11 @@ function setValue (obj, parts, value) {
   } else {
     // Type safety: Check if current is an object before using 'in' operator
     if (typeof current === 'object' && current !== null && lastKey in current && Object.prototype.hasOwnProperty.call(current, lastKey)) {
+      const desc = Object.getOwnPropertyDescriptor(current, lastKey)
+      if (desc && desc.get && !desc.set && !desc.writable) {
+        // Property has only a getter — skip silently
+        return true
+      }
       current[lastKey] = value
     }
   }
@@ -383,6 +392,10 @@ function selectiveClone (obj, pathStructure) {
 
     if (source instanceof Date) {
       return new Date(source.getTime())
+    }
+
+    if (source instanceof URL) {
+      return new URL(source.href)
     }
 
     if (Array.isArray(source)) {
