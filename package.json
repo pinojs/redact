@@ -4,6 +4,10 @@
   "description": "Redact JS objects",
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
   "scripts": {
     "test": "node --test && npm run test:types",
     "test:integration": "node --test test/integration.test.js",
