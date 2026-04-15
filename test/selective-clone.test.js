@@ -115,3 +115,34 @@ test('selective cloning performance - large objects with minimal redaction', () 
   assert.strictEqual(result.nested.deep.shared4, sharedData)
   assert.strictEqual(result.nested.deep.moreShared, sharedData)
 })
+
+test('selective cloning preserves Symbol-keyed internal state for prototype getters (#33)', () => {
+  // Mirrors node-fetch v2's Response: private state is kept in a
+  // Symbol-keyed own property and exposed via prototype getters. A clone
+  // that inherits the prototype but drops the Symbol-keyed property causes
+  // the getters to read from `undefined` and crash.
+  const INTERNALS = Symbol('Response internals')
+  class FakeResponse {
+    constructor (headers, status) {
+      this[INTERNALS] = { headers, status }
+    }
+    get headers () { return this[INTERNALS].headers }
+    get status () { return this[INTERNALS].status }
+  }
+
+  const response = new FakeResponse({ authorization: 'Bearer secret' }, 200)
+  const obj = { cause: { response } }
+
+  const redact = slowRedact({
+    paths: ['cause.response.headers.authorization'],
+    serialize: false
+  })
+
+  // Prior to the fix this threw:
+  //   TypeError: Cannot read properties of undefined (reading 'headers')
+  const result = redact(obj)
+
+  // The clone still behaves like a FakeResponse via the prototype getters.
+  assert.strictEqual(result.cause.response.status, 200)
+  assert.ok(result.cause.response instanceof FakeResponse)
+})
