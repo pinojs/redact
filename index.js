@@ -399,14 +399,27 @@ function selectiveClone (obj, pathStructure) {
     }
 
     // Handle objects
+    // We use Reflect.ownKeys so that Symbol-keyed own properties are copied
+    // onto the clone alongside string-keyed ones. Classes that store their
+    // internal state under a Symbol-keyed property and expose it via
+    // prototype getters (e.g. node-fetch's `Response`/`Request`, which keep
+    // their state in a private `[INTERNALS]` symbol) would otherwise see the
+    // getter fire against a clone whose internal state was never copied,
+    // resulting in a crash. See #33.
     const cloned = Object.create(Object.getPrototypeOf(source))
-    for (const key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        if (pathMap.has(key) || pathMap.has('*')) {
-          cloned[key] = cloneSelectively(source[key], pathMap.get(key) || pathMap.get('*'))
-        } else {
-          cloned[key] = source[key] // Share reference for non-redacted properties
-        }
+    const ownKeys = Reflect.ownKeys(source)
+    for (let i = 0; i < ownKeys.length; i++) {
+      const key = ownKeys[i]
+      if (typeof key === 'symbol') {
+        // Symbol-keyed own properties can never be targeted by a (string)
+        // redaction path, so always share the reference.
+        cloned[key] = source[key]
+        continue
+      }
+      if (pathMap.has(key) || pathMap.has('*')) {
+        cloned[key] = cloneSelectively(source[key], pathMap.get(key) || pathMap.get('*'))
+      } else {
+        cloned[key] = source[key] // Share reference for non-redacted properties
       }
     }
     return cloned
