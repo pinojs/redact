@@ -115,3 +115,90 @@ test('selective cloning performance - large objects with minimal redaction', () 
   assert.strictEqual(result.nested.deep.shared4, sharedData)
   assert.strictEqual(result.nested.deep.moreShared, sharedData)
 })
+
+test('does not mutate input when a wildcard path overlaps a literal path leading key', () => {
+  // https://github.com/pinojs/redact/issues/36
+  const obj = { a: { b: { token: 'secret' } } }
+
+  const redact = slowRedact({
+    paths: ['*.*.token', 'a.x'],
+    serialize: false
+  })
+
+  const result = redact(obj)
+
+  assert.strictEqual(result.a.b.token, '[REDACTED]')
+  assert.strictEqual(obj.a.b.token, 'secret')
+})
+
+test('does not mutate input when the literal overlapping path is a prefix leaf', () => {
+  const obj = { a: { b: { token: 'secret' } } }
+
+  const redact = slowRedact({
+    paths: ['*.*.token', 'a'],
+    serialize: false
+  })
+
+  const result = redact(obj)
+
+  assert.strictEqual(result.a, '[REDACTED]')
+  assert.strictEqual(obj.a.b.token, 'secret')
+})
+
+test('does not mutate input when overlapping paths are given in reverse order', () => {
+  const obj = { a: { b: { token: 'secret' } } }
+
+  const redact = slowRedact({
+    paths: ['a.x', '*.*.token'],
+    serialize: false
+  })
+
+  const result = redact(obj)
+
+  assert.strictEqual(result.a.b.token, '[REDACTED]')
+  assert.strictEqual(obj.a.b.token, 'secret')
+})
+
+test('does not mutate input in serialize mode when wildcard and literal paths overlap', () => {
+  const obj = { a: { b: { token: 'secret' } } }
+
+  const redact = slowRedact({
+    paths: ['*.*.token', 'a.x']
+  })
+
+  const serialized = redact(obj)
+
+  assert.strictEqual(JSON.parse(serialized).a.b.token, '[REDACTED]')
+  assert.strictEqual(obj.a.b.token, 'secret')
+})
+
+test('does not mutate array elements when a wildcard path overlaps a literal index path', () => {
+  const obj = { list: [{ token: 'secret' }] }
+
+  const redact = slowRedact({
+    paths: ['list.*.token', 'list.0.x'],
+    serialize: false
+  })
+
+  const result = redact(obj)
+
+  assert.strictEqual(result.list[0].token, '[REDACTED]')
+  assert.strictEqual(obj.list[0].token, 'secret')
+})
+
+test('still shares references for branches untouched by overlapping paths', () => {
+  const shared = { unchanged: 'data' }
+  const obj = { a: { b: { token: 'secret' } }, other: shared }
+
+  const redact = slowRedact({
+    paths: ['a.*.token', 'a.b.x'],
+    serialize: false
+  })
+
+  const result = redact(obj)
+
+  assert.strictEqual(result.a.b.token, '[REDACTED]')
+  assert.strictEqual(obj.a.b.token, 'secret')
+  // `other` is not reachable by any redaction path, so its reference is shared
+  assert.strictEqual(result.other, shared)
+})

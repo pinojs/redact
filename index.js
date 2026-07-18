@@ -367,6 +367,24 @@ function buildPathStructure (pathsToClone) {
   return pathStructure
 }
 
+function mergePathMaps (literalMap, wildcardMap) {
+  if (!literalMap || literalMap.size === 0) {
+    return wildcardMap
+  }
+  if (!wildcardMap || wildcardMap.size === 0) {
+    return literalMap
+  }
+  const merged = new Map(literalMap)
+  for (const [key, subMap] of wildcardMap) {
+    if (merged.has(key)) {
+      merged.set(key, mergePathMaps(merged.get(key), subMap))
+    } else {
+      merged.set(key, subMap)
+    }
+  }
+  return merged
+}
+
 function selectiveClone (obj, pathStructure) {
   if (!pathStructure) {
     return obj // No paths to redact, return original
@@ -390,7 +408,9 @@ function selectiveClone (obj, pathStructure) {
       for (let i = 0; i < source.length; i++) {
         const indexStr = i.toString()
         if (pathMap.has(indexStr) || pathMap.has('*')) {
-          cloned[i] = cloneSelectively(source[i], pathMap.get(indexStr) || pathMap.get('*'))
+          // Merge the literal and wildcard sub-structures so branches reachable
+          // by either path are cloned before redaction writes to them (#36)
+          cloned[i] = cloneSelectively(source[i], mergePathMaps(pathMap.get(indexStr), pathMap.get('*')))
         } else {
           cloned[i] = source[i] // Share reference for non-redacted items
         }
@@ -403,7 +423,9 @@ function selectiveClone (obj, pathStructure) {
     for (const key in source) {
       if (Object.prototype.hasOwnProperty.call(source, key)) {
         if (pathMap.has(key) || pathMap.has('*')) {
-          cloned[key] = cloneSelectively(source[key], pathMap.get(key) || pathMap.get('*'))
+          // Merge the literal and wildcard sub-structures so branches reachable
+          // by either path are cloned before redaction writes to them (#36)
+          cloned[key] = cloneSelectively(source[key], mergePathMaps(pathMap.get(key), pathMap.get('*')))
         } else {
           cloned[key] = source[key] // Share reference for non-redacted properties
         }
