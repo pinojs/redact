@@ -367,6 +367,23 @@ function buildPathStructure (pathsToClone) {
   return pathStructure
 }
 
+// True when `key` is defined on a prototype between `source` and Object.prototype
+// (class getters, inherited data). False for own keys and Object.prototype keys
+// such as __proto__ and constructor, so those stay on the pollution-safe path.
+function hasCustomPrototypeProperty (source, key) {
+  if (source === null || typeof source !== 'object') {
+    return false
+  }
+  let proto = Object.getPrototypeOf(source)
+  while (proto && proto !== Object.prototype) {
+    if (Object.prototype.hasOwnProperty.call(proto, key)) {
+      return true
+    }
+    proto = Object.getPrototypeOf(proto)
+  }
+  return false
+}
+
 function selectiveClone (obj, pathStructure) {
   if (!pathStructure) {
     return obj // No paths to redact, return original
@@ -408,6 +425,23 @@ function selectiveClone (obj, pathStructure) {
           cloned[key] = source[key] // Share reference for non-redacted properties
         }
       }
+    }
+
+    // Own-property enumeration skips prototype getters (e.g. Koa Request#header).
+    // setValue still follows them with `in`, so snapshot those path segments as
+    // own properties on the clone. Otherwise redactPaths writes through the
+    // live getter into the caller's object.
+    for (const key of pathMap.keys()) {
+      if (key === '*') continue
+      if (Object.prototype.hasOwnProperty.call(cloned, key)) continue
+      if (!hasCustomPrototypeProperty(source, key)) continue
+      // defineProperty: assignment would hit a setter-less prototype getter.
+      Object.defineProperty(cloned, key, {
+        value: cloneSelectively(source[key], pathMap.get(key)),
+        writable: true,
+        enumerable: true,
+        configurable: true
+      })
     }
     return cloned
   }

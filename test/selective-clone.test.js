@@ -80,6 +80,75 @@ test('selective cloning with no paths returns original object', () => {
   assert.strictEqual(result, obj)
 })
 
+test('does not mutate through a prototype getter on a literal path', () => {
+  class KoaLikeRequest {
+    constructor (req) {
+      this.req = req
+    }
+
+    get header () {
+      return this.req.headers
+    }
+  }
+
+  const req = { headers: { cookie: 'session=secret', accept: 'text/html' } }
+  const obj = { ctx: { request: new KoaLikeRequest(req) } }
+
+  const redact = slowRedact({
+    paths: ['ctx.request.header.cookie'],
+    serialize: false
+  })
+
+  const result = redact(obj)
+
+  assert.strictEqual(req.headers.cookie, 'session=secret')
+  assert.strictEqual(obj.ctx.request.header.cookie, 'session=secret')
+  assert.strictEqual(result.ctx.request.header.cookie, '[REDACTED]')
+  assert.strictEqual(result.ctx.request.header.accept, 'text/html')
+
+  const parsed = JSON.parse(slowRedact({
+    paths: ['ctx.request.header.cookie']
+  })({ ctx: { request: new KoaLikeRequest({ headers: { cookie: 'session=secret' } }) } }))
+  assert.strictEqual(parsed.ctx.request.header.cookie, '[REDACTED]')
+})
+
+test('own-property getters are snapshotted and do not mutate the original', () => {
+  const headers = { cookie: 'session=secret' }
+  const obj = {
+    ctx: {
+      request: {
+        get header () {
+          return headers
+        }
+      }
+    }
+  }
+
+  const result = slowRedact({
+    paths: ['ctx.request.header.cookie'],
+    serialize: false
+  })(obj)
+
+  assert.strictEqual(headers.cookie, 'session=secret')
+  assert.strictEqual(result.ctx.request.header.cookie, '[REDACTED]')
+})
+
+test('does not mutate inherited data on a custom prototype', () => {
+  function Request () {}
+  Request.prototype.header = { cookie: 'session=secret' }
+
+  const obj = { request: new Request() }
+
+  const result = slowRedact({
+    paths: ['request.header.cookie'],
+    serialize: false
+  })(obj)
+
+  assert.strictEqual(Request.prototype.header.cookie, 'session=secret')
+  assert.strictEqual(obj.request.header.cookie, 'session=secret')
+  assert.strictEqual(result.request.header.cookie, '[REDACTED]')
+})
+
 test('selective cloning performance - large objects with minimal redaction', () => {
   // Create a large object with mostly shared data
   const sharedData = { large: 'data'.repeat(1000) }
