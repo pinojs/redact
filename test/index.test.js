@@ -79,6 +79,23 @@ test('serialize: false returns object with restore method', () => {
   assert.strictEqual(restored.secret, 'hidden')
 })
 
+test('restore: false returns object without restore method', () => {
+  const obj = { secret: 'hidden' }
+  const redact = slowRedact({
+    paths: ['secret'],
+    serialize: false,
+    restore: false,
+  })
+  const result = redact(obj)
+
+  // Should be object, not string
+  assert.strictEqual(typeof result, 'object')
+  assert.strictEqual(result.secret, '[REDACTED]')
+
+  // Should not have restore method
+  assert.strictEqual(typeof result.restore, 'undefined')
+})
+
 test('bracket notation paths', () => {
   const obj = {
     'weird-key': { 'another-weird': 'secret' },
