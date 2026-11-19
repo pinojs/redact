@@ -480,6 +480,7 @@ function slowRedact (options = {}) {
     paths = [],
     censor = '[REDACTED]',
     serialize = JSON.stringify,
+    restore = true,
     strict = true,
     remove = false
   } = options
@@ -512,8 +513,10 @@ function slowRedact (options = {}) {
     redactPaths(cloned, paths, actualCensor, remove)
 
     if (serialize === false) {
-      cloned.restore = function () {
-        return deepClone(original) // Full clone only when restore is called
+      if (restore) {
+        cloned.restore = function () {
+          return deepClone(original) // Full clone only when restore is called
+        }
       }
       return cloned
     }
